@@ -40,6 +40,7 @@ function iniget() {
 
 FILE="simulation_Z0.cfg"
 TOP_DIR="/data_fast/cnatzke/GammaGammaSurface145mm/Simulations"
+RUN_DIR=$PWD
 # parse ini file
 Z=$(iniget $FILE simulation z)
 A=$(iniget $FILE simulation a)
@@ -50,15 +51,25 @@ G2=$(iniget $FILE simulation g2)
 if [[ $# != 0 ]]; then
     echo "usage: move_root_files"
     exit 1
-elif [[ ! -e $FILE ]]; then
+elif [[ ! -f $FILE ]]; then
     echo "Missing config file: $FILE"
     exit 2
 else
+    SIM_DIR="$TOP_DIR/z$Z.a$A/${G1}_${G2}"
+    echo "Moving files to $SIM_DIR"
     for i in {0..4..2}; do
-        TARGET_DIR="$TOP_DIR/z$Z.a$A/${G1}_${G2}/Z$i"
+        TARGET_DIR="$SIM_DIR/Z$i"
         mkdir -p $TARGET_DIR/Raw $TARGET_DIR/Sorted
-        mv g4out_Z${i}_???.root $TARGET_DIR/Raw
-        mv Converted_Z${i}_???.root $TARGET_DIR/Sorted
-        mv run_macro_Z$i.mac simulation_Z${i}.cfg $TARGET_DIR
+        mv g4out_Z${i}_0???.root $TARGET_DIR/Raw
+        mv Converted_Z${i}_0???.root $TARGET_DIR/Sorted
+        cp run_macro_Z$i.mac simulation_Z${i}.cfg $TARGET_DIR
     done
+
+    # Check for missing/small files
+    echo "Checking for missing files"
+    cd $SIM_DIR
+    /home/cnatzke/Projects/GammaGamma145mmSurface/SimulationUtilities/find_missing_files.sh
+    cp missing_files.txt $RUN_DIR
+    cd $RUN_DIR
+
 fi

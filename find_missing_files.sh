@@ -12,7 +12,7 @@ if [[ -e $OUTPUT_FILE ]]; then
 fi
 
 for z in {0..4..2}; do
-    for job in {000..999}; do
+    for job in {0000..0999}; do
         # set the correct path for the filetype
         if [[ $FILE_PREFIX == "g4out" ]]; then
             FILE="$TOP_DIR/Z$z/Raw/${FILE_PREFIX}_Z${z}_$job.root"
@@ -21,11 +21,16 @@ for z in {0..4..2}; do
         fi
 
         # Check if file exists or is small, if not record which file is missing
-        FILE_SIZE="$(stat -c %s $FILE)"
         MIN_SIZE=3000000 # 3MB
-        if [[ ! -e $FILE || $FILE_SIZE -le $MIN_SIZE ]]; then
+        if [[ ! -e $FILE ]]; then
             COUNT=$(( $COUNT + 1))
             echo "$z,$job" >> missing_files.txt
+        elif [[ -e $FILE ]]; then
+            FILE_SIZE="$(stat -c %s $FILE)"
+            if [[ $FILE_SIZE -le $MIN_SIZE ]]; then 
+                COUNT=$(( $COUNT + 1))
+                echo "$z,$job" >> missing_files.txt
+            fi
         fi
     done
 done
